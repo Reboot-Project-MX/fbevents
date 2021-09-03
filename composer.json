@@ -1,0 +1,20 @@
+{
+    "name": "rebootproject/fbevents",
+    "description": "Eventos para Facebook y Wordpress",
+    "type": "library",
+    "require": {
+        "facebook/php-business-sdk": "^11.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Rebootproject\\Fbevents\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Reboot Project",
+            "email": "info@rebootproject.mx"
+        }
+    ]
+}
