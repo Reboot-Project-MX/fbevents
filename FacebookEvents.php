@@ -14,39 +14,57 @@ use FacebookAds\Object\ServerSide\UserData;
 class FacebookEvents
 {
     protected static $access_token = "";
-    protected static $pixel_id = '';
+    protected static $pixel_id = "";
 
-    function sendContentView($post)
+    function sendContentView()
     {
-        global $wp;
-        $api = Api::init(null, null, self::$access_token);
-        $api->setLogger(new CurlLogger());
+        try {
+            global $wp;
+            $post = get_post();
+            // print json_encode($post);
+            $product = wc_get_product($post->ID);
+            // print "*******************->" . $product->get_price();
+            // die(json_encode($product));
+            $api = Api::init(null, null, self::$access_token);
+            $api->setLogger(new CurlLogger());
 
-        $user_data = (new UserData())
-            // ->setEmails(array($customer->user_email))
-            // ->setPhones(array('5550724875'))
-            // It is recommended to send Client IP and User Agent for Conversions API Events.
-            ->setClientIpAddress($_SERVER['REMOTE_ADDR'])
-            // ->setClientIpAddress("189.217.18.121")
-            ->setClientUserAgent($_SERVER['HTTP_USER_AGENT'])
-            // ->setClientUserAgent("Mozilla/5.0 (Windows NT 6.1; rv:16.0) Gecko/20100101 Firefox/16.0")
-            ->setFbc($_COOKIE["_fbc"])
-            ->setFbp($_COOKIE["_fbp"]);
+            $user_data = (new UserData())
+                // ->setEmails(array($customer->user_email))
+                // ->setPhones(array('5550724875'))
+                // It is recommended to send Client IP and User Agent for Conversions API Events.
+                ->setClientIpAddress($_SERVER['REMOTE_ADDR'])
 
-        $event = (new Event())
-            ->setEventName('ViewContent')
-            ->setEventTime(time())
-            ->setEventSourceUrl(home_url(add_query_arg(array($_GET), $wp->request)))
-            ->setUserData($user_data)
-            ->setActionSource(ActionSource::WEBSITE);
+                // ->setClientIpAddress("189.217.18.121")
+                ->setClientUserAgent($_SERVER['HTTP_USER_AGENT'])
+                // ->setClientUserAgent("Mozilla/5.0 (Windows NT 6.1; rv:16.0) Gecko/20100101 Firefox/16.0")
+                ->setFbc($_COOKIE["_fbc"])
+                ->setFbp($_COOKIE["_fbp"]);
 
-        $events = array();
-        array_push($events, $event);
+            $custom_data = (new CustomData())
+                ->setContentName($post->post_title)
+                ->setValue($product->get_price());
 
-        $request = (new EventRequest(self::$pixel_id))
-            ->setEvents($events);
-        $response = $request->execute();
-        $response->getFbTraceId();
+            $event = (new Event())
+                ->setEventId(time())
+                ->setEventName('ViewContent')
+                ->setEventTime(time())
+                ->setEventSourceUrl(home_url(add_query_arg(array($_GET), $wp->request)))
+                ->setUserData($user_data)
+                ->setCustomData($custom_data)
+                ->setActionSource(ActionSource::WEBSITE);
+
+            $events = array();
+            array_push($events, $event);
+
+            $request = (new EventRequest(self::$pixel_id))
+                ->setEvents($events);
+            $response = $request->execute();
+            $response->getFbTraceId();
+            // die(print_r($response));
+        } catch (Exception $ex) {
+            error_log($ex);
+            die($ex);
+        }
     }
 
     function sendPageView($post)
@@ -67,6 +85,7 @@ class FacebookEvents
             ->setFbp($_COOKIE["_fbp"]);
 
         $event = (new Event())
+            ->setEventId(md5(time()))
             ->setEventName('PageView')
             ->setEventTime(time())
             ->setEventSourceUrl(home_url(add_query_arg(array($_GET), $wp->request)))

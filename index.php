@@ -4,12 +4,12 @@
   Plugin Name: Fb Events
   Description: Tareas 
   Author: Reboot Project
-  Version: 0.1
+  Version: 0.1.1
   Author URI: https://www.rebootproject.mx
  */
 include_once "FacebookEvents.php";
 
-use \FacebookEvents;
+// use FacebookEvents;
 
 /**
  * actions
